@@ -2,7 +2,6 @@ package com.shyam.phonepe.driver;
 
 import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -13,13 +12,15 @@ import com.shyam.phonepe.entity.Player;
 import com.shyam.phonepe.entity.PlayerScoreCard;
 import com.shyam.phonepe.entity.Team;
 import com.shyam.phonepe.enums.DeliveryType;
+import com.shyam.phonepe.service.CricketScoreboardService;
 import com.shyam.phonepe.service.OverProcessorService;
+import com.shyam.phonepe.utility.FileReaderUtility;
 
 public class MatchDriver {
 	public static void main(final String... strings) throws IOException {
 
-		BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
-
+		// new BufferedReader(new InputStreamReader(System.in));
+		BufferedReader br = FileReaderUtility.giveMeFileReader("input.txt");// FileReaderUtility.giveMeFileReader("input2.txt");
 		int totalNumberOfPlayersInEachTeam = Integer.parseInt(br.readLine());
 		int totalNumberOfOvers = Integer.parseInt(br.readLine());
 
@@ -87,6 +88,7 @@ public class MatchDriver {
 
 			if (OverProcessorService.processOver(ballStatus, i + 1, secondInning)
 					|| (secondInning.getTotalRuns() > firstInning.getTotalRuns())) {
+				CricketScoreboardService.generateScoreBoard(secondInning);
 				break;
 			}
 			if (!DeliveryType.isExtraBallTypes(ballStatus)) {
