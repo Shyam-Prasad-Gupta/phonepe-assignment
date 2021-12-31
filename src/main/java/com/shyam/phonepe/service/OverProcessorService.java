@@ -68,8 +68,8 @@ public class OverProcessorService {
 
 		// here generate and print the score board and also check if innings is over or
 		// not
-		if (deliveryNum % 6 == 0 || inningStatus.isInningOver()) {
-			CricketScoreboardService.generateScoreBoard(inningStatus);
+		if (deliveryNum % 6 == 0 /* || inningStatus.isInningOver() */) {
+			// CricketScoreboardService.generateScoreBoard(inningStatus);
 
 			// change the strike if the over is completed
 			if (deliveryNum % 6 == 0)
@@ -79,6 +79,9 @@ public class OverProcessorService {
 				|| (inningStatus.getTotalWickets() == (inningStatus.getBattingTeam().getTotalNumberOfPlayers() - 1))) {
 			inningStatus.setInningOver(true);
 		}
+//		if (inningStatus.isInningOver()) {
+//			CricketScoreboardService.generateScoreBoard(inningStatus);
+//		}
 		return inningStatus.isInningOver();
 	}
 

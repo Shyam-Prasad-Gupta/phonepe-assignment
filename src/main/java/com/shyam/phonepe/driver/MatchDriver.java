@@ -20,42 +20,41 @@ public class MatchDriver {
 	public static void main(final String... strings) throws IOException {
 
 		// new BufferedReader(new InputStreamReader(System.in));
-		BufferedReader br = FileReaderUtility.giveMeFileReader("input.txt");// FileReaderUtility.giveMeFileReader("input2.txt");
+		BufferedReader br = FileReaderUtility.giveMeFileReader("input3.txt");// FileReaderUtility.giveMeFileReader("input2.txt");
 		int totalNumberOfPlayersInEachTeam = Integer.parseInt(br.readLine());
 		int totalNumberOfOvers = Integer.parseInt(br.readLine());
 
 		// Note: assuming that team 1 will bat first without tossing a coin
-		Team team1 = new Team("T1");
-		List<Player> team1PlayerList = new ArrayList<Player>();
-		team1.setTotalNumberOfPlayers(totalNumberOfPlayersInEachTeam);
-		team1.setBattingOrder(team1PlayerList);
-
+		List<Player> playerList = new ArrayList<>();
 		for (int i = 0; i < totalNumberOfPlayersInEachTeam; i++) {
 			String playerName = br.readLine();
-			team1PlayerList.add(new Player(playerName));
+			playerList.add(new Player(playerName));
 			// here we can also set player past data as well fetching from some external
 			// source or from user provided input as well, adding name only for simplicity.
 		}
+		Team team1 = createTeam("Team1", playerList);
 
 		// inning 1 starts here
 		InningStatus firstInning = new InningStatus();
 
 		// prepare empty score card map for players to be populated during the match
-		firstInning.setPlayerScoreCardMap(prepareEmptyScorecardMapForPlayers(team1PlayerList));
+		firstInning.setPlayerScoreCardMap(prepareEmptyScorecardMapForPlayers(team1.getBattingOrder()));
 		firstInning.setTotalOversInTheMatch(totalNumberOfOvers);
 		firstInning.setBattingTeam(team1);
-		firstInning.setBatsmanOnStrike(team1PlayerList.get(0));
-		firstInning.setBatsmanNotOnStrike(team1PlayerList.get(1));
+		firstInning.setBatsmanOnStrike(team1.getBattingOrder().get(0));
+		firstInning.setBatsmanNotOnStrike(team1.getBattingOrder().get(1));
 
 		for (int i = 0; (!firstInning.isInningOver());) {
 			String ballStatus = br.readLine();
 
+			printScoreCardForInning(firstInning);
 			if (OverProcessorService.processOver(ballStatus, i + 1, firstInning)) {
 				break;
 			}
 			if (!DeliveryType.isExtraBallTypes(ballStatus)) {
 				i++;
 			}
+			// printScoreCardForInning(firstInning);
 		}
 
 		Team team2 = new Team("T2");
@@ -86,18 +85,31 @@ public class MatchDriver {
 
 			String ballStatus = br.readLine();
 
+			printScoreCardForInning(firstInning);
 			if (OverProcessorService.processOver(ballStatus, i + 1, secondInning)
-					|| (secondInning.getTotalRuns() > firstInning.getTotalRuns())) {
-				CricketScoreboardService.generateScoreBoard(secondInning);
+					|| (secondInning.getTotalRuns() > firstInning.getTotalRuns())
+					|| (secondInning.getTotalWickets() == (totalNumberOfPlayersInEachTeam - 1))
+					|| (secondInning.getTotalBallDelivered() % 6 == 0)) {
+				// CricketScoreboardService.generateScoreBoard(secondInning);
 				break;
 			}
 			if (!DeliveryType.isExtraBallTypes(ballStatus)) {
 				i++;
 			}
+			// printScoreCardForInning(secondInning);
 		}
 
 		// now here depending on the inning status choose the winner
 		printMatchResult(firstInning, secondInning);
+	}
+
+	private static Team createTeam(final String teamName, final List<Player> totalPlayers) {
+
+		Team team = new Team(teamName);
+
+		team.setTotalNumberOfPlayers(totalPlayers.size());
+		team.setBattingOrder(totalPlayers);
+		return team;
 	}
 
 	private static void printMatchResult(final InningStatus firstInning, final InningStatus secondInning) {
@@ -117,5 +129,16 @@ public class MatchDriver {
 		Map<Player, PlayerScoreCard> map = new HashMap<>();
 		team1PlayerList.stream().forEach(player -> map.put(player, new PlayerScoreCard()));
 		return map;
+	}
+
+	private static void printScoreCardForInning(final InningStatus inning) {
+		// cases where we have to print score card
+		// 1. all players are out
+		// 2. over is completed
+		// 3. inning is over
+		if ((inning.getTotalWickets() == (inning.getBattingTeam().getTotalNumberOfPlayers() - 1))
+				|| (inning.getTotalBallDelivered() % 6 == 0) || inning.isInningOver()) {
+			CricketScoreboardService.generateScoreBoard(inning);
+		}
 	}
 }
